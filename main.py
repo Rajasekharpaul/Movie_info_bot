@@ -64,7 +64,7 @@ async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
     # Get Poster Image
     poster_path = movie.get("poster_path")
-    poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+    poster_url = f"https://image.tmdb.org/t/p/original{poster_path}" if poster_path else None
 
      # Final message with caption
     caption = f"""🎬 *{title}*
