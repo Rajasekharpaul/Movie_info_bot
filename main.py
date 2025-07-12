@@ -95,11 +95,27 @@ async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
         disable_web_page_preview=True
     )
 
+async def trending(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    url= f"https://api.themoviedb.org/3/trending/movie/day?api_key={TMDB_API_KEY}"
+    response=requests.get(url)
+    data=response.json().get("results", [])
+
+    if not data:
+        await update.message.reply_text("No trending movies found.")
+        return
+    message = "Trending Movies:\n\n"
+    for movie in data[:5]:
+        title = movie['title']
+        release_date = movie['release_date']
+        overview = movie.get('overview', 'No description.')
+        message += f"Title: {title}\nRelease Date: {release_date}\nOverview: {overview}\n\n"
+    await update.message.reply_text(message)
 
 app=ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("latest", latest))
 app.add_handler(CommandHandler("search", search))
+app.add_handler(CommandHandler("trending", trending))
 
 if __name__ == "__main__":
     app.run_polling()
