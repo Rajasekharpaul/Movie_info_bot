@@ -171,7 +171,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 # Telegram does not allow editing a message to change it from text to photo, 
                 # so we must send a new photo and delete the old message.
                 await query.message.delete()
-                await query.bot.send_photo(
+                await context.bot.send_photo(
                     chat_id=query.message.chat_id,
                     photo=poster_url,
                     caption=caption,
