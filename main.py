@@ -103,9 +103,9 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     if update and hasattr(update, 'message') and update.message:
         await update.message.reply_text(message, parse_mode="Markdown")
 
-async def get_movie_details(movie_id, api_key):
+async def get_movie_details(movie_id, TMDB_API_KEY):
     """Fetches full details, languages, OTT, and trailers for a given movie ID."""
-    
+    api_key=TMDB_API_KEY
     # Get Language And Details
     details=requests.get(f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}").json()
     languages=",".join([lang['english_name'] for lang in details.get('spoken_languages', [])])
