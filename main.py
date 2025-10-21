@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes,MessageHandler,filters
 from dotenv import load_dotenv
 import os
 import requests
@@ -25,10 +25,15 @@ async def latest(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(message)
 
 async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
-    if len(context.args)== 0:
-        await update.message.reply_text("please provide a movie name to search like /search <movie_name>")
+    print("Search Command Invoked")
+    if context.args:
+        movie_name = " ".join(context.args)
+    elif update.message and update.message.text:
+        movie_name = update.message.text
+    else:
+        await update.message.reply_text("Please provide a movie name to search.")
         return
-    movie_name = " ".join(context.args)
+
     search_url=f"https://api.themoviedb.org/3/search/movie"
     params={
         "api_key":TMDB_API_KEY,
@@ -38,7 +43,7 @@ async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
     data = response.json().get("results", [])
 
     if not data:
-        await update.reply_text("No results found")
+        await update.reply_text(f"No results found for '{movie_name}'.")
         return
     
     movie=data[0]
@@ -111,11 +116,29 @@ async def trending(update:Update,context:ContextTypes.DEFAULT_TYPE):
         message += f"Title: {title}\nRelease Date: {release_date}\nOverview: {overview}\n\n"
     await update.message.reply_text(message)
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a message to the user."""
+    # Log the full traceback for debugging purposes
+    print(f"Update {update} caused error {context.error}") 
+
+    # Determine a user-friendly message based on the error type
+    if isinstance(context.error, requests.exceptions.ConnectTimeout) or \
+       isinstance(context.error, requests.exceptions.ReadTimeout):
+        message = "⚠️ **Connection Error:** I couldn't reach the movie database. Please check your network connection or try again in a moment."
+    else:
+        # Generic message for other unexpected errors
+        message = "🚨 **An unexpected error occurred!** Please try your request again."
+
+    # Reply to the user if an update object is available
+    if update and hasattr(update, 'message') and update.message:
+        await update.message.reply_text(message, parse_mode="Markdown")
+
 app=ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("latest", latest))
-app.add_handler(CommandHandler("search", search))
+app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), search))
 app.add_handler(CommandHandler("trending", trending))
+app.add_error_handler(error_handler)
 
 if __name__ == "__main__":
     app.run_polling()
