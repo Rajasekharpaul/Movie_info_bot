@@ -193,6 +193,7 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("latest", latest))
 app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), search))
 app.add_handler(CommandHandler("trending", trending))
+app.add_handler(CallbackQueryHandler(button_click))
 app.add_error_handler(error_handler)
 
 if __name__ == "__main__":
